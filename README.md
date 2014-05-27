@@ -13,4 +13,5 @@ ZDF Mediathek Auto Downloader
 ## Usage
 * setup config file zdf.ini
 * start downloader (e.g. as cron job)
+
     ./dl.py
