@@ -26,7 +26,7 @@ def log(show, msg, suc):
         note = "ERROR"
     print "[%s] %s: %s" % (note, show, msg)
 
-def download_file(url, output):
+def download_file(show, url, output):
     global speed_limit
     resume_byte_pos = 0
     file_options = 'wb'
@@ -151,7 +151,7 @@ for show in shows:
             if download_link:
                 log(show, "snatch successful", True)
                 try:
-                    download_file(download_link, output_file)
+                    download_file(show, download_link, output_file)
                 except:
                     log(show, "download failed", False)
                 continue
