@@ -137,7 +137,7 @@ if __name__ == "__main__":
             except:
                 log(show, "not found within the show", False)
                 sys.exit(1)
-                continue
+            
             show_dir = os.path.join(media_dir, show)
             if not os.path.isdir(show_dir):
                 os.makedirs(show_dir)
