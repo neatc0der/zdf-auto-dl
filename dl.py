@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python
 import requests, re, os, sys, math, time, argparse
 from ConfigParser import SafeConfigParser
 from xml.dom.minidom import parseString
@@ -135,8 +135,8 @@ if __name__ == "__main__":
             try:
                 date = parts[1].split("<")[0]
             except:
-                log(show, "not found within the show", False)
-                sys.exit(1)
+                log(show, "no current episode found", False)
+                continue
             
             show_dir = os.path.join(media_dir, show)
             if not os.path.isdir(show_dir):
