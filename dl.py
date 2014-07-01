@@ -92,18 +92,20 @@ def download_file(show, url, output, argdata = {}):
                         sleep_time = 0
 
 if __name__ == "__main__":
+    prog_path = os.path.abspath(os.path.split(sys.argv[0])[0])
+    config_file = os.path.join(prog_path, "zdf.ini")
 
     parser = argparse.ArgumentParser(description='ZDF Mediathek Auto Downloader')
     parser.add_argument("-v", "--verbose", help="print INFO messages", action="store_true")
     parser.add_argument("-p", "--progress", help="print download progress", action="store_true")
     args = parser.parse_args()
 
-    if not os.path.isfile("zdf.ini"):
+    if not os.path.isfile(config_file):
         log("config", "file is missing", False)
         sys.exit(1)
 
     parser = ConfigParser()
-    parser.readfp(codecs.open("zdf.ini", "r", "utf8"))
+    parser.readfp(codecs.open(config_file, "r", "utf8"))
     try:
         speed_limit = int(parser.get("user", "speed"))
     except:
