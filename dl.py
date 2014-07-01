@@ -185,7 +185,7 @@ if __name__ == "__main__":
                     while i < 3:
                         try:
                             download_file(show, download_link, output_file)
-                            break
+                            continue
                         except KeyboardInterrupt:
                             log(show, "Keyboard Interrupt", False)
                             sys.exit(1)
