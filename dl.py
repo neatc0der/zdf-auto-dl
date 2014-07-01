@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-import requests, re, os, sys, math, time, argparse
-from ConfigParser import SafeConfigParser
+#-*- coding: UTF-8 -*-
+import requests, re, os, sys, math, time, argparse, codecs
+from ConfigParser import SafeConfigParser, ConfigParser
 from xml.dom.minidom import parseString
 from pprint import pprint
 
@@ -19,6 +20,15 @@ class RingBuffer:
         if len(self.data) == self.max:
             return self.data[self.cur]
         return self.data[-1]
+
+def html_to_text(text):
+    text = text.replace(u"&auml;", u"ä")
+    text = text.replace(u"&Auml;", u"Ä")
+    text = text.replace(u"&ouml;", u"ö")
+    text = text.replace(u"&Ouml;", u"Ö")
+    text = text.replace(u"&uuml;", u"ü")
+    text = text.replace(u"&Uuml;", u"Ü")
+    return text
 
 def log(show, msg, suc, argdata = {}):
     if not argdata:
@@ -92,8 +102,8 @@ if __name__ == "__main__":
         log("config", "file is missing", False)
         sys.exit(1)
 
-    parser = SafeConfigParser()
-    parser.read('zdf.ini')
+    parser = ConfigParser()
+    parser.readfp(codecs.open("zdf.ini", "r", "utf8"))
     try:
         speed_limit = int(parser.get("user", "speed"))
     except:
@@ -108,8 +118,8 @@ if __name__ == "__main__":
     xml_url = parser.get("zdf", "xml")
     download_prefix = parser.get("zdf", "download_prefix")
 
-    link_regex = re.compile('<a href=".*">', re.IGNORECASE)
-    id_regex = re.compile('/(\d)+/')
+    link_regex = re.compile(u'<a href=".*">', re.IGNORECASE)
+    id_regex = re.compile(u'/(\d)+/')
 
     for show in shows:
         show = show.strip().lower()
@@ -118,8 +128,8 @@ if __name__ == "__main__":
             params = {'sucheText': show},
         )
 
-        find_string = ">%s<" % show
-        parts = re.split(find_string, resp.text, flags=re.IGNORECASE)
+        find_string = u">%s<" % show
+        parts = re.split(find_string, html_to_text(resp.text), flags=re.IGNORECASE)
         if len(parts) < 2:
             log(show, "not found in search engine", False)
             continue
@@ -130,8 +140,8 @@ if __name__ == "__main__":
 
             resp = requests.get(link)
 
-            find_string = "%s.* vom " % show
-            parts = re.split(find_string, resp.text, flags=re.IGNORECASE)
+            find_string = u">%s.* vom " % show
+            parts = re.split(find_string, html_to_text(resp.text), flags=re.IGNORECASE)
             try:
                 date = parts[1].split("<")[0]
             except:
@@ -141,14 +151,13 @@ if __name__ == "__main__":
             show_dir = os.path.join(media_dir, show)
             if not os.path.isdir(show_dir):
                 os.makedirs(show_dir)
-            output_file = os.path.join(show_dir, "%s-%s.%s" % (show, date, download_format))
-            m = link_regex.findall(parts[0])
+            output_file = os.path.join(show_dir, "%s-%s%s" % (show, date, download_format))
+            m = link_regex.findall(parts[0]+">")
             if m:
                 link = m[-1]
                 link = url + link.split('"')[1]
                 m = id_regex.search(link)
                 media_id = link[m.start(0)+1:m.end(0)-1]
-
                 link = url + xml_url % media_id
                 resp = requests.get(link)
 
@@ -170,10 +179,17 @@ if __name__ == "__main__":
 
                 if download_link:
                     log(show, "snatch successful", True)
-                    try:
-                        download_file(show, download_link, output_file)
-                    except:
+                    i = 0
+                    while i < 3:
+                        try:
+                            download_file(show, download_link, output_file)
+                        except KeyboardInterrupt:
+                            log(show, "Keyboard Interrupt", False)
+                            sys.exit(1)
+                        except:
+                            i += 1
+                    if i >= 3:
+                        continue
                         log(show, "download failed", False)
-                    continue
 
         log(show, "not found", False)
