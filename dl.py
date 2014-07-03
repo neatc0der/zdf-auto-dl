@@ -65,7 +65,7 @@ def parse_date(date_string):
 
 def get_show_data(url, show, date):
     resp = requests.post(
-        url % unicode_to_string(show).lower(),
+        url % unicode_to_string(show).lower().replace(" ", "-"),
         params = {},
     )
     parts = resp.text.split(date.strftime("%d.%m.%Y"))
