@@ -70,13 +70,18 @@ def get_show_data(url, show, date):
     )
     parts = resp.text.split(date.strftime("%d.%m.%Y"))
     if len(parts) > 1:
-        parts = (
+        results = (
             parts[0].split("episodenliste-episodennummer")[-2].split("</span>")[0].split(">")[-1][:-1].zfill(2),
-            parts[0].split("episodenliste-episodennummer")[-1].split("</span>")[0].split(">")[-1].zfill(2)
+            parts[0].split("episodenliste-episodennummer")[-1].split("</span>")[0].split(">")[-1].zfill(2),
         )
-        return parts
+        if results[0] == "":
+            results = (
+                "00",
+                parts[0].split("episodenliste-episodennummer")[-3].split("</td>")[0].split(">")[-1].zfill(3),
+            )
+        return results
     else:
-        return ("00", str(random.randint(100000,999999)))
+        return ("00", date.strftime("%Y%m%d"))
 
 def download_file(show, url, output, argdata = {}):
     if not argdata:
@@ -197,13 +202,13 @@ if __name__ == "__main__":
             date = parse_date(date)
             season, episode = get_show_data(info_url, show, date)
             show_data = {
-                "show": unicode_to_string(show),
+                "show": show,
                 "episode": episode,
                 "season": season,
                 "date": date,
                 "format": download_format,
             }
-            output_file = os.path.join(show_dir, unicode_to_string(filename_format).format(**show_data))
+            output_file = os.path.join(show_dir, unicode_to_string(filename_format.format(**show_data)))
             m = link_regex.findall(parts[0]+">")
             if m:
                 link = m[-1]
