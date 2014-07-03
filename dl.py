@@ -129,7 +129,7 @@ def download_file(show, url, output, argdata = {}):
                         sleep_time = 0
 
 if __name__ == "__main__":
-    locale.setlocale(locale.LC_ALL, "de_de")
+    locale.setlocale(locale.LC_ALL, "de_DE")
     prog_path = os.path.abspath(os.path.split(sys.argv[0])[0])
     config_file = os.path.join(prog_path, "zdf.ini")
 
