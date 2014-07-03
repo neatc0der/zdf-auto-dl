@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 #-*- coding: UTF-8 -*-
 import requests, re, os, sys, math, time, argparse, codecs
+import locale, datetime, dateutil, random
 from ConfigParser import SafeConfigParser, ConfigParser
 from xml.dom.minidom import parseString
-from pprint import pprint
 
 class RingBuffer:
     def __init__(self, size_max):
@@ -21,6 +21,16 @@ class RingBuffer:
             return self.data[self.cur]
         return self.data[-1]
 
+def unicode_to_string(text):
+    text = text.replace(u"ä", u"ae")
+    text = text.replace(u"Ä", u"Ae")
+    text = text.replace(u"ö", u"oe")
+    text = text.replace(u"Ö", u"Oe")
+    text = text.replace(u"ü", u"ue")
+    text = text.replace(u"Ü", u"Ue")
+    text = text.replace(u"ß", u"ss")
+    return text.encode("ascii", "ignore")
+    
 def html_to_text(text):
     text = text.replace(u"&auml;", u"ä")
     text = text.replace(u"&Auml;", u"Ä")
@@ -28,6 +38,7 @@ def html_to_text(text):
     text = text.replace(u"&Ouml;", u"Ö")
     text = text.replace(u"&uuml;", u"ü")
     text = text.replace(u"&Uuml;", u"Ü")
+    text = text.replace(u"&szlig;", u"ß")
     return text
 
 def log(show, msg, suc, argdata = {}):
@@ -39,7 +50,33 @@ def log(show, msg, suc, argdata = {}):
     if not suc:
         note = "ERROR"
     if not suc or args.verbose:
-        print "[%s] %s: %s" % (note, show, msg)
+        sys.stdout.write("[%s] %s: %s\n" % (note, unicode_to_string(show), msg))
+
+def parse_date(date_string):
+    date = None
+    try:
+        date = datetime.datetime.strptime(date_string, "%d. %B %Y")
+    except ValueError:
+        try:
+            date = datetime.datetime.strptime(date_string, "%d.%m.%Y")
+        except ValueError:
+            date = dateutil.parser.parse(date_string)
+    return date
+
+def get_show_data(url, show, date):
+    resp = requests.post(
+        url % unicode_to_string(show).lower(),
+        params = {},
+    )
+    parts = resp.text.split(date.strftime("%d.%m.%Y"))
+    if len(parts) > 1:
+        parts = (
+            parts[0].split("episodenliste-episodennummer")[-2].split("</span>")[0].split(">")[-1][:-1].zfill(2),
+            parts[0].split("episodenliste-episodennummer")[-1].split("</span>")[0].split(">")[-1].zfill(2)
+        )
+        return parts
+    else:
+        return ("00", str(random.randint(100000,999999)))
 
 def download_file(show, url, output, argdata = {}):
     if not argdata:
@@ -80,7 +117,7 @@ def download_file(show, url, output, argdata = {}):
                 ticks.append(time.time())
                 waiting_time = 1024.0*(1.0/speed_limit - 1.0/speed)
                 if args.progress:
-                    print "\r%.1f %% - %.1f KB/s speed     " % (percent, speed),
+                    sys.stdout.write("\r%.1f %% - %.1f KB/s speed     " % (percent, speed))
                 if waiting_time > sleep_time:
                     sleep_time += 0.000001
                 if sleep_time > 0:
@@ -92,6 +129,7 @@ def download_file(show, url, output, argdata = {}):
                         sleep_time = 0
 
 if __name__ == "__main__":
+    locale.setlocale(locale.LC_ALL, "de_de")
     prog_path = os.path.abspath(os.path.split(sys.argv[0])[0])
     config_file = os.path.join(prog_path, "zdf.ini")
 
@@ -113,13 +151,16 @@ if __name__ == "__main__":
     shows = parser.get("user", "shows").split(",")
     media_dir = parser.get("user", "media_dir")
     download_quality = parser.get("user", "quality")
-    download_format = ".%s" % parser.get("user", "format")
+    download_format = parser.get("user", "format")
+    filename_format = parser.get("user", "filename")
 
     url = parser.get("zdf", "url")
     search_url = parser.get("zdf", "search")
     xml_url = parser.get("zdf", "xml")
     download_prefix = parser.get("zdf", "download_prefix")
-
+    
+    info_url = parser.get("info", "url")
+    
     link_regex = re.compile(u'<a href=".*">', re.IGNORECASE)
     id_regex = re.compile(u'/(\d)+/')
 
@@ -150,10 +191,19 @@ if __name__ == "__main__":
                 log(show, "no current episode found", False)
                 continue
             
-            show_dir = os.path.join(media_dir, show)
+            show_dir = os.path.join(media_dir, unicode_to_string(show))
             if not os.path.isdir(show_dir):
                 os.makedirs(show_dir)
-            output_file = os.path.join(show_dir, "%s-%s%s" % (show, date, download_format))
+            date = parse_date(date)
+            season, episode = get_show_data(info_url, show, date)
+            show_data = {
+                "show": unicode_to_string(show),
+                "episode": episode,
+                "season": season,
+                "date": date,
+                "format": download_format,
+            }
+            output_file = os.path.join(show_dir, unicode_to_string(filename_format).format(**show_data))
             m = link_regex.findall(parts[0]+">")
             if m:
                 link = m[-1]
@@ -175,7 +225,7 @@ if __name__ == "__main__":
                     download = element.getElementsByTagName("url")
                     if download:
                         download = download[0].firstChild.nodeValue
-                    if download.endswith(download_format) and download.startswith(download_prefix):
+                    if download.endswith(".%s" % download_format) and download.startswith(download_prefix):
                         download_link = download
                         break
 
@@ -185,13 +235,14 @@ if __name__ == "__main__":
                     while i < 3:
                         try:
                             download_file(show, download_link, output_file)
+                            break
                         except KeyboardInterrupt:
                             log(show, "Keyboard Interrupt", False)
                             sys.exit(1)
                         except:
                             i += 1
                     if i >= 3:
-                        continue
                         log(show, "download failed", False)
+                    continue
 
         log(show, "not found", False)

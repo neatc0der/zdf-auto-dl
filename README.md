@@ -9,6 +9,9 @@ ZDF Mediathek Auto Downloader
 * pip
 * requests
 * xml
+* dateutil
+* ConfigParser
+* argparse
 
 ## Usage
 * setup config file zdf.ini
