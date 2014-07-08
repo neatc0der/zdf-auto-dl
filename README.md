@@ -18,4 +18,4 @@ ZDF Mediathek Auto Downloader
 * start downloader (e.g. as cron job)
 
 
-    ./dl.py
+    ./dl.py [-h] [-v] [-p]
