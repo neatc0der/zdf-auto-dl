@@ -79,9 +79,9 @@ def get_show_data(url, show, date):
                 "00",
                 parts[0].split("episodenliste-episodennummer")[-3].split("</td>")[0].split(">")[-1].zfill(3),
             )
-        return results
-    else:
-        return ("00", date.strftime("%Y%m%d"))
+        if int(results[1]) > 0:
+            return results
+    return ("00", date.strftime("%Y%m%d"))
 
 def download_file(show, url, output, argdata = {}):
     if not argdata:
