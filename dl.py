@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #-*- coding: UTF-8 -*-
 import requests, re, os, sys, math, time, argparse, codecs
-import locale, datetime, dateutil, random
+import locale, datetime, dateutil.parser, random
 from ConfigParser import SafeConfigParser, ConfigParser
 from xml.dom.minidom import parseString
 
@@ -39,6 +39,7 @@ def html_to_text(text):
     text = text.replace(u"&uuml;", u"ü")
     text = text.replace(u"&Uuml;", u"Ü")
     text = text.replace(u"&szlig;", u"ß")
+    text = text.replace(u"&quot;", u"\"")
     return text
 
 def log(show, msg, suc, argdata = {}):
@@ -188,10 +189,12 @@ if __name__ == "__main__":
 
             resp = requests.get(link)
 
-            find_string = u">%s.* vom " % show
+            find_string = u">(\")?%s(\")?.* vom " % show
             parts = re.split(find_string, html_to_text(resp.text), flags=re.IGNORECASE)
             try:
                 date = parts[1].split("<")[0]
+                if date == '"':
+                    date = parts[3].split("<")[0]
             except:
                 log(show, "no current episode found", False)
                 continue
