@@ -5,6 +5,8 @@ import locale, datetime, dateutil.parser, random
 from ConfigParser import SafeConfigParser, ConfigParser
 from xml.dom.minidom import parseString
 
+from pprint import pprint
+
 class RingBuffer:
     def __init__(self, size_max):
         self.max = size_max
@@ -39,6 +41,7 @@ def html_to_text(text):
     text = text.replace(u"&uuml;", u"ü")
     text = text.replace(u"&Uuml;", u"Ü")
     text = text.replace(u"&szlig;", u"ß")
+    text = text.replace(u"&nbsp;", u" ")
     text = text.replace(u"&quot;", u"\"")
     return text
 
@@ -190,7 +193,7 @@ if __name__ == "__main__":
             resp = requests.get(link)
 
             find_string = u">(\")?%s(\")?.* vom " % show
-            parts = re.split(find_string, html_to_text(resp.text), flags=re.IGNORECASE)
+            parts = filter(None, re.split(find_string, html_to_text(resp.text), flags=re.IGNORECASE))
             try:
                 date = parts[1].split("<")[0]
                 if date == '"':
