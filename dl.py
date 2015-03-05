@@ -268,6 +268,7 @@ if __name__ == "__main__":
                     "date": date.strftime("%d.%m.%Y"),
                     "format": download_format,
                 }
+                
                 output_file = os.path.join(show_dir, unicode_to_string(filename_format.format(**show_data)))
                 m = link_regex.findall(parts[0]+">")
                 if m:
@@ -292,7 +293,7 @@ if __name__ == "__main__":
                             download = download[0].firstChild.nodeValue
                         if download.endswith(".%s" % download_format) and download.startswith(download_prefix):
                             download_link = download
-                            continue
+                            break
 
                     if download_link:
                         log(show, "snatch successful", True)
@@ -300,7 +301,7 @@ if __name__ == "__main__":
                         while i < 3:
                             try:
                                 download_file(show, download_link, output_file)
-                                continue
+                                break
                             except KeyboardInterrupt:
                                 log(show, "Keyboard Interrupt", False)
                                 sys.exit(1)
