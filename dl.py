@@ -5,8 +5,6 @@ import locale, datetime, dateutil.parser, random
 from ConfigParser import SafeConfigParser, ConfigParser
 from xml.dom.minidom import parseString
 
-from pprint import pprint
-
 class RingBuffer:
     def __init__(self, size_max):
         self.max = size_max
@@ -181,6 +179,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='ZDF Mediathek Auto Downloader')
     parser.add_argument("-v", "--verbose", help="print INFO messages", action="store_true")
     parser.add_argument("-p", "--progress", help="print download progress", action="store_true")
+    parser.add_argument("-f", "--find", help="find episodes, do not download", action="store_true")
     args = parser.parse_args()
 
     if not os.path.isfile(config_file):
@@ -213,7 +212,7 @@ if __name__ == "__main__":
     info_url = parser.get("info", "url")
     
     link_regex = re.compile(u'<a href=".*">', re.IGNORECASE)
-    id_regex = re.compile(u'/(\d)+/')
+    id_regex = re.compile(u'/(\d)+[/\?]')
 
     for show in shows:
         show = show.strip().lower()
@@ -222,64 +221,72 @@ if __name__ == "__main__":
             params = {'sucheText': show},
         )
 
-        find_string = u">%s<" % show
+        find_string = u">%s\s*.*<" % show
         parts = re.split(find_string, html_to_text(resp.text), flags=re.IGNORECASE)
         if len(parts) < 2:
             log(show, "not found in search engine", False)
             continue
         m = link_regex.findall(parts[0] + ">")
         if m:
-            for this_try in xrange(previous_episodes):
-                try:
-                    link = m[this_try - previous_episodes]
-                except:
-                    continue
+            link = m[-1]
+            link = url + link.split('"')[1]
+
+            resp = requests.get(link)
+
+            show_dir = os.path.join(media_dir, unicode_to_string(show))
+
+            if not os.path.isdir(show_dir):
+                os.makedirs(show_dir)
+
+            find_string = u">(\")?%s.*(\")?.* vom " % show
+            episodes = filter(None, re.split(find_string, html_to_text(resp.text), flags=re.IGNORECASE))
+            show_data = {
+                "show": show,
+                "format": download_format,
+            }
+
+            if episodes:
+                this_try = 0
+                try_offset = 0
+                while this_try < previous_episodes:
+                    if try_offset + this_try >= len(episodes) - 1:
+                        break
                     
-                link = url + link.split('"')[1]
-
-                resp = requests.get(link)
-
-                find_string = u">(\")?%s(\")?.* vom " % show
-                parts = filter(None, re.split(find_string, html_to_text(resp.text), flags=re.IGNORECASE))
-                try:
-                    date = parts[1].split("<")[0]
-                    if date == '"':
-                        date = parts[3].split("<")[0]
-                except:
-                    log(show, "no current episode found", False)
-                    continue
-
-                show_dir = os.path.join(media_dir, unicode_to_string(show))
-
-                if not os.path.isdir(show_dir):
-                    os.makedirs(show_dir)
-
-                try:
-                    date = parse_date(date)
-                except:
-                    log(show, "unable to parse date", False)
-                    continue
-
-                season, episode = get_show_data(info_url, show, date)
-                show_data = {
-                    "show": show,
-                    "episode": episode,
-                    "season": season,
-                    "date": date.strftime("%d.%m.%Y"),
-                    "format": download_format,
-                }
-                
-                output_file = os.path.join(show_dir, unicode_to_string(filename_format.format(**show_data)))
-                m = link_regex.findall(parts[0]+">")
-                if m:
-                    link = m[-1]
-                    link = url + link.split('"')[1]
-                    m = id_regex.search(link)
-                    media_id = link[m.start(0)+1:m.end(0)-1]
+                    try:
+                        link = link_regex.findall(episodes[try_offset + this_try]+">")[-1].split('"')[1]
+                    except:
+                        try_offset += 1
+                        continue
+                        
+                    if link.startswith('http:'):
+                        try_offset += 1
+                        continue
+                    
+                    this_try += 1
+                    link = url + link
+                    id_m = id_regex.search(link)
+                    media_id = link[id_m.start(0)+1:id_m.end(0)-1]
                     link = url + xml_url % media_id
                     resp = requests.get(link)
-
                     xml_data = parseString(resp.text.encode("utf8"))
+                    title = xml_data.getElementsByTagName("title")[0].firstChild.nodeValue
+                    
+                    try:
+                        date = title.split(' vom ')[-1]
+                    except:
+                        log(show, "unable to find date", False)
+                        continue
+
+                    try:
+                        date = parse_date(date)
+                    except:
+                        log(show, "unable to parse date", False)
+                        continue
+
+                    show_data['date'] = date.strftime("%d.%m.%Y")
+                    show_data['season'], show_data['episode'] = get_show_data(info_url, show, date)
+
+                    output_file = os.path.join(show_dir, unicode_to_string(filename_format.format(**show_data)))
 
                     download_link = ""
                     for element in xml_data.getElementsByTagName("formitaet"):
@@ -296,19 +303,24 @@ if __name__ == "__main__":
                             break
 
                     if download_link:
-                        log(show, "snatch successful", True)
-                        i = 0
-                        while i < 3:
-                            try:
-                                download_file(show, download_link, output_file)
-                                break
-                            except KeyboardInterrupt:
-                                log(show, "Keyboard Interrupt", False)
-                                sys.exit(1)
-                            except:
-                                i += 1
-                        if i >= 3:
-                            log(show, "download failed", False)
-                        continue
+                        if not args.find:
+                            log(show, "snatch successful", True)
+                            i = 0
+                            while i < 3:
+                                try:
+                                    download_file(show, download_link, output_file)
+                                    break
+                                except KeyboardInterrupt:
+                                    log(show, "Keyboard Interrupt", False)
+                                    sys.exit(1)
+                                except:
+                                    i += 1
+                            if i >= 3:
+                                log(show, "download failed", False)
+                            continue
+                            
+                        else:
+                            log(show, "found episode %s" % show_data['episode'], True)
+                            continue
         else:
             log(show, "not found", False)
