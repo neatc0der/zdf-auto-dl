@@ -1,0 +1,8 @@
+argparse
+colorlog
+ConfigParser
+cssselect
+lxml
+python-dateutil
+requests
+six
