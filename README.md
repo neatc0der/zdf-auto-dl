@@ -33,8 +33,11 @@ ZDF Mediathek Auto Downloader 1.0
       -h, --help       print help message
       
       -c, --config     set path to configuration file
+      
       -f, --find       display available episodes only (no download)
+      
       -l, --log-level  set log level
+      
       -p, --progress   print download progress
       
       --no-color       disable colorize output
