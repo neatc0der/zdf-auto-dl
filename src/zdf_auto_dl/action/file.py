@@ -16,33 +16,25 @@ from .part import PartDownloader
 
 @add_logger
 class VideoDownloader(object):
-    def __init__(self, config, show, video_master, episode_date):
+    def __init__(self, config, show, video_master, episode_data):
         self.config = config
         self.show = show
         self.video_master = video_master
 
-        self.episode_date = episode_date
-        self.season, self.episode = self._get_session_and_episode()
+        self.episode_data = episode_data
         self.format = 'ts'
 
         self.target_file = self._get_output_file()
         self.episode_name = os.path.basename(self.target_file).rpartition('.')[0]
         self.temp_dir = os.path.join(self.config.media_dir, self.show, self.episode_name)
 
-    def _get_session_and_episode(self):
-        # todo: determine season and episode
-        return '00', self.episode_date.strftime('%Y%m%d')
-
     def _get_output_file(self):
         return os.path.join(
             self.config.media_dir,
             self.show,
             self.config.filename_format.format(
-                show=self.show,
-                season=self.season,
-                episode=self.episode,
-                date=self.episode_date,
                 format=self.format,
+                **self.episode_data.as_dict()
             ),
         )
 
@@ -99,11 +91,8 @@ class VideoDownloader(object):
 
         self.logger.debug('executing finish script')
         cmd = shlex.split(self.config.finish_script.format(
-            show=self.show,
-            season=self.season,
-            episode=self.episode,
-            date=self.episode_date,
             format=self.format,
+            **self.episode_data.as_dict()
         ))
 
         subprocess.call(cmd)

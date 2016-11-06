@@ -4,7 +4,7 @@
 
 :authors: - Tobias Grosch
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import json
 import re
@@ -14,6 +14,7 @@ from lxml import html
 from zdf_auto_dl.logger import add_logger
 from .api import ApiKeyCollector
 from .buffer import RingBuffer
+from .episode import EpisodeData
 from .extractor import ZdfExtractor
 from .file import VideoDownloader
 
@@ -47,13 +48,19 @@ class ZdfDownloader(object):
             'q': show,
             'contentTypes': 'episode',
         }
-        result = requests.get(self.SEARCH_URL, show_data)
+        result = requests.get(self.SEARCH_URL, params=show_data)
 
-        extractor = ZdfExtractor(show, result.text)
-        episodes = extractor.get_episodes()
+        zdf_extractor = ZdfExtractor(show, result.text)
+        episodes = zdf_extractor.get_episodes()
 
         for episode_date in sorted(episodes.keys())[-self.config.previous_episodes:]:
-            self._download_episode(episode_date, episodes[episode_date])
+            episode_data = EpisodeData(self.show, episode_date)
+            episode_data.retrieve()
+
+            if self.config.find is True:
+                print('found: {show} (S{season}E{episode})'.format(**episode_data.as_dict()))
+            else:
+                self._download_episode(episode_data, episodes[episode_date])
 
     @staticmethod
     def _get_video_data(video_url):
@@ -102,8 +109,8 @@ class ZdfDownloader(object):
         video_master_url = requests.get(video_masters_url).text
         return requests.get(self._get_best_quality_link(video_master_url)).text
 
-    def _download_episode(self, episode_date, video_meta_url):
+    def _download_episode(self, episode_data, video_meta_url):
         video_master = self._get_video_master(video_meta_url)
 
-        video_downloader = VideoDownloader(self.config, self.show, video_master, episode_date)
+        video_downloader = VideoDownloader(self.config, self.show, video_master, episode_data)
         video_downloader.start()

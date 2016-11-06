@@ -1,7 +1,7 @@
 zdf-auto-dl
 ===========
 
-ZDF Mediathek Auto Downloader 1.0
+ZDF Mediathek Auto Downloader 1.0.1
 
 
 ## Requirements
@@ -19,7 +19,7 @@ ZDF Mediathek Auto Downloader 1.0
 
 ## Installation
 
-    pip install -r requirements.txt
+    pip install -Ur requirements.txt
 
 
 ## Usage
@@ -45,5 +45,7 @@ ZDF Mediathek Auto Downloader 1.0
 
 ## ToDo
 * ensure support for all python versions
+    * Python 2.7: verified (2.7.6)
+    * Python 3.5: verified (3.5.2)
 * add setup.py
     * include command to bind main.py

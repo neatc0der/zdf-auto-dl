@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 
-:copyright: GNS Systems GmbH, 2016
 
-:authors: - Tobias Grosch (GNS Systems GmbH)
+:authors: - Tobias Grosch
 """
 import requests
 

@@ -48,11 +48,14 @@ class PartDownloader(object):
                     percent = float(i * 100) / chunk_max
                     speed = float(len(ticks.data)) / (time.time() - ticks.get())
                     ticks.append(time.time())
-                    waiting_time = 1024.0 * (1.0 / self.config.speed_limit - 1.0 / speed)
 
                     if self.config.progress:
                         sys.stdout.write('\r%.1f %% - %.1f KB/s speed     ' % (percent, speed))
 
+                    if self.config.speed_limit is None:
+                        continue
+
+                    waiting_time = 1024.0 * (1.0 / self.config.speed_limit - 1.0 / speed)
                     if waiting_time > sleep_time:
                         sleep_time += 0.000001
 

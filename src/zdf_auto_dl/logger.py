@@ -43,12 +43,12 @@ def init_logger(level=logging.INFO, no_color=False):
             style='%'
         )
 
-        handler = StreamHandler()
+        handler = StreamHandler(stream=sys.stderr)
         handler.setFormatter(color_formatter)
 
     else:
         formatter = logging.Formatter('%(asctime)-15s [%(levelname)s] %(name)s.%(funcName)s:%(lineno)s %(message)s')
-        handler = logging.StreamHandler()
+        handler = logging.StreamHandler(stream=sys.stderr)
         handler.setFormatter(formatter)
 
     if any(logging.root.handlers):

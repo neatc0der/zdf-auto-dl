@@ -26,6 +26,7 @@ else:
 class Configuration(object):
     def __init__(self, arguments, config_parser):
         self.progress = arguments.progress
+        self.find = arguments.find
 
         self.speed_limit = self._get_value(config_parser, 'user', 'speed')
         self.previous_episodes = self._get_value(config_parser, 'user', 'previous')
