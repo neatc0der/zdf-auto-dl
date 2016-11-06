@@ -1,7 +1,7 @@
 zdf-auto-dl
 ===========
 
-ZDF Mediathek Auto Downloader 1.0.1
+ZDF Mediathek Auto Downloader 1.0.2
 
 
 ## Requirements

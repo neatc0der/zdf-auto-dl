@@ -17,6 +17,8 @@ class ZdfExtractor(object):
     BASE_URL = 'https://www.zdf.de'
     DATE_REGEX = re.compile(r'^.* vom (?P<date>((\d{1,2}\.){2}\d{4})|(\d{1,2}. (?P<month>\w+) \d{4})).*$', re.IGNORECASE)
 
+    TITLE_REGEX = re.compile(r'^.*\"actionDetail\":\s*\"(?P<title>.*)\"\s*}$')
+
     MONTH_TRANSLATION = {
         'Januar': 'January',
         'Februar': 'February',
@@ -38,9 +40,12 @@ class ZdfExtractor(object):
         title_elements = self.document.cssselect('a.teaser-title-link')
         episodes = {}
         for title_element in title_elements:
-            episode_title = json.loads(
-                title_element.get('data-track')
-            )['actionDetail'].rpartition('Teaser:')[-1].strip()
+            title_match = self.TITLE_REGEX.match(title_element.get('data-track').replace('\n', ' '))
+            if title_match is None:
+                self.logger.warn('unable to find title: %r' % title_element.get('data-track').replace('\n', ' '))
+                continue
+
+            episode_title = title_match.group('title').rpartition('Teaser:')[-1].strip()
             if self.show.lower() not in episode_title.lower():
                 continue
 
