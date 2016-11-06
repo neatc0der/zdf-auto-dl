@@ -16,6 +16,7 @@ from zdf_auto_dl.action import ZdfDownloader
 from zdf_auto_dl.config import ConfigurationLoader
 from zdf_auto_dl.exceptions import DownloaderException
 from zdf_auto_dl.logger import init_logger, get_logger
+from zdf_auto_dl.version import __version__
 
 
 CONFIG_FILE_DEFAULT_PATH = os.path.abspath(
@@ -24,7 +25,7 @@ CONFIG_FILE_DEFAULT_PATH = os.path.abspath(
 
 
 def get_arguments(argv):
-    parser = argparse.ArgumentParser(description='ZDF Mediathek Auto Downloader')
+    parser = argparse.ArgumentParser(description='ZDF Mediathek Auto Downloader v%s' % __version__)
 
     parser.add_argument(
         '-c',
