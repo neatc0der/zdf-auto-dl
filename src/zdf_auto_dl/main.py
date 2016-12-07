@@ -53,7 +53,7 @@ def execute(arguments):
 def main(argv=sys.argv):
     arguments = get_arguments(argv)
 
-    init_logger(arguments.log_level.upper())
+    init_logger(arguments.log_level.upper(), arguments.no_color)
     logger = get_logger()
 
     logger.debug('start processing')

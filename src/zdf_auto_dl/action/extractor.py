@@ -40,7 +40,11 @@ class ZdfExtractor(object):
         title_elements = self.document.cssselect('a.teaser-title-link')
         episodes = {}
         for title_element in title_elements:
-            title_match = self.TITLE_REGEX.match(title_element.get('data-track').replace('\n', ' '))
+            data_track = title_element.get('data-track')
+            if data_track is None:
+                self.logger.warn('unable to find title: no data track in element "%s"' % title_element.text.replace('\n', ' ').strip())
+                continue
+            title_match = self.TITLE_REGEX.match(data_track.replace('\n', ' '))
             if title_match is None:
                 self.logger.warn('unable to find title: %r' % title_element.get('data-track').replace('\n', ' '))
                 continue
