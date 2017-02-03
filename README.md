@@ -26,22 +26,18 @@ ZDF Mediathek Auto Downloader 1.0.2
 * setup config file zdf.ini
 * start downloader (e.g. as cron job)
 
+~~~
+Usage:
+./src/zdf_auto_dl/main.py [OPTIONS]
 
-    Usage ./src/zdf_auto_dl/main.py [OPTIONS]
-    
-    OPTIONS:
-      -h, --help       print help message
-      
-      -c, --config     set path to configuration file
-      
-      -f, --find       display available episodes only (no download)
-      
-      -l, --log-level  set log level
-      
-      -p, --progress   print download progress
-      
-      --no-color       disable colorize output
-
+OPTIONS:
+  -h, --help       print help message
+  -c, --config     set path to configuration file
+  -f, --find       display available episodes only (no download)
+  -l, --log-level  set log level
+  -p, --progress   print download progress
+  --no-color       disable colorize output
+~~~
 
 ## ToDo
 * ensure support for all python versions
