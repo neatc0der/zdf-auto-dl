@@ -66,7 +66,7 @@ class ZdfExtractor(object):
                 )
 
             episode_date = dateutil.parser.parse(episode_date_str)
-            episodes[episode_date] = self.BASE_URL + title_element.get('href').strip()
+            episodes[episode_date] = title_element.get('href').strip()
 
         self.logger.debug('found %i fitting episodes of %i results' % (len(episodes), len(title_elements)))
 
