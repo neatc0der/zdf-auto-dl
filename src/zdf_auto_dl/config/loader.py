@@ -34,6 +34,9 @@ class ConfigurationLoader(object):
 
         config_parser = ConfigParser()
         with codecs.open(config_file, "r", "utf8") as config_fp:
-            config_parser.read_file(config_fp)
+            if hasattr(config_parser, 'read_file'):
+                config_parser.read_file(config_fp)
+            else:
+                config_parser.readfp(config_fp)
 
         return Configuration(arguments, config_parser)
