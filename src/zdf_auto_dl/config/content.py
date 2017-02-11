@@ -14,6 +14,7 @@ import sys
 
 from zdf_auto_dl.logger import add_logger
 from .exceptions import ConfigurationError
+from .register import RegisterFactory
 
 if sys.version[0] == 2:
     from ConfigParser import NoOptionError, NoSectionError
@@ -34,6 +35,8 @@ class Configuration(object):
         self.media_dir = self._get_value(config_parser, 'user', 'media_dir')
         self.filename_format = self._get_value(config_parser, 'user', 'filename')
         self.finish_script = self._get_value(config_parser, 'user', 'finished')
+
+        self.register = RegisterFactory.get_register(arguments, config_parser)
 
         self._validate()
 

@@ -39,7 +39,7 @@ class VideoDownloader(object):
         )
 
     def start(self):
-        if os.path.isfile(self.target_file):
+        if self.config.register.check(self.target_file):
             self.logger.debug('file already exists')
             return
 
@@ -50,6 +50,7 @@ class VideoDownloader(object):
 
         try:
             self._download()
+            self.config.register.add(self.target_file)
 
         finally:
             for part_file in os.listdir(self.temp_dir):
