@@ -102,7 +102,7 @@ class ZdfDownloader(object):
         video_data = requests.get(content_url, headers={'Api-Auth': 'Bearer %s' % api_key}).json()
         attribute_path = video_data['mainVideoContent']['http://zdf.de/rels/target']['http://zdf.de/rels/streams/ptmd']
 
-        response = requests.get(self.API_BASE_URL + attribute_path)
+        response = requests.get(self.API_BASE_URL + attribute_path, headers={'Api-Auth': 'Bearer %s' % api_key})
         try:
             video_attribute_data = response.json()
         except json.decoder.JSONDecodeError:
