@@ -102,7 +102,14 @@ class ZdfDownloader(object):
         video_data = requests.get(content_url, headers={'Api-Auth': 'Bearer %s' % api_key}).json()
         attribute_path = video_data['mainVideoContent']['http://zdf.de/rels/target']['http://zdf.de/rels/streams/ptmd']
 
-        video_attribute_data = requests.get(self.API_BASE_URL + attribute_path).json()
+        response = requests.get(self.API_BASE_URL + attribute_path)
+        try:
+            video_attribute_data = response.json()
+        except json.decoder.JSONDecodeError:
+            self.logger.error('unable to parse video attribute data for show "%s": %s' % (self.show, response.text))
+            self.logger.debug('url responsible for error: %s' % response.url)
+            return
+
         video_masters_url = \
             video_attribute_data['priorityList'][0]['formitaeten'][0]['qualities'][0]['audio']['tracks'][0]['uri']
 
@@ -111,6 +118,12 @@ class ZdfDownloader(object):
 
     def _download_episode(self, episode_data, video_meta_url):
         video_master = self._get_video_master(video_meta_url)
+
+        if not video_master:
+            self.logger.warn(
+                'skipping episode S%sE%s for show %s' % (episode_data.season, episode_data.episode, self.show)
+            )
+            return
 
         video_downloader = VideoDownloader(self.config, self.show, video_master, episode_data)
         video_downloader.start()
