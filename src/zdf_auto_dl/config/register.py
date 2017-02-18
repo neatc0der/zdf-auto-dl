@@ -15,7 +15,7 @@ class RegisterFactory:
 
 class SimpleRegister:
     def check(self, file_path):
-        return os.path.isfile(sile_path)
+        return os.path.isfile(file_path)
 
     def add(self, file_path):
         pass
