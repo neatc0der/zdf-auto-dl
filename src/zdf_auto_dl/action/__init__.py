@@ -12,7 +12,7 @@ import requests
 from lxml import html
 
 from zdf_auto_dl.logger import add_logger
-from .api import ApiKeyCollector
+from .api import ApiTokenStorage
 from .buffer import RingBuffer
 from .episode import EpisodeData
 from .extractor import ZdfExtractor
@@ -92,17 +92,22 @@ class ZdfDownloader(object):
 
         return video_files[best_quality]
 
-    def _get_video_master(self, video_meta_url):
+    def _get_video_master(self, video_meta_url): #, api_token):
         video_meta_data = self._get_video_data(video_meta_url)
         config_path = video_meta_data['config']
 
-        api_key = ApiKeyCollector.get_api_key(ZdfExtractor.BASE_URL + config_path)
+        api_token = video_meta_data['apiToken']
+        ApiTokenStorage.set_api_token(api_token)
         content_url = video_meta_data['content']
 
-        video_data = requests.get(content_url, headers={'Api-Auth': 'Bearer %s' % api_key}).json()
+        video_data_result = requests.get(content_url, headers={'Api-Auth': 'Bearer %s' % api_token})
+        if video_data_result.status_code == 403:
+            self.logger.error('invalid api token: %r' % api_token)
+            return
+        video_data = video_data_result.json()
         attribute_path = video_data['mainVideoContent']['http://zdf.de/rels/target']['http://zdf.de/rels/streams/ptmd']
 
-        response = requests.get(self.API_BASE_URL + attribute_path, headers={'Api-Auth': 'Bearer %s' % api_key})
+        response = requests.get(self.API_BASE_URL + attribute_path, headers={'Api-Auth': 'Bearer %s' % api_token})
         try:
             video_attribute_data = response.json()
         except json.decoder.JSONDecodeError:
@@ -117,6 +122,8 @@ class ZdfDownloader(object):
         return requests.get(self._get_best_quality_link(video_master_url)).text
 
     def _download_episode(self, episode_data, video_meta_url):
+        if not video_meta_url.startswith('http'):
+            video_meta_url = ZdfExtractor.BASE_URL + video_meta_url
         video_master = self._get_video_master(video_meta_url)
 
         if not video_master:

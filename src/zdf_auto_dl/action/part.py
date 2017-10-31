@@ -12,7 +12,7 @@ import sys
 import time
 
 from zdf_auto_dl.logger import add_logger
-from .api import ApiKeyCollector
+from .api import ApiTokenStorage
 from .buffer import RingBuffer
 
 
@@ -28,7 +28,7 @@ class PartDownloader(object):
     def start(self):
         self.logger.debug('starting download of a single part: %s' % self.link)
 
-        r = requests.get(self.link, headers={'Api-Auth': 'Bearer %s' % ApiKeyCollector.get_api_key()}, stream=True)
+        r = requests.get(self.link, headers={'Api-Auth': 'Bearer %s' % ApiTokenStorage.get_api_token()}, stream=True)
 
         chunk_max = math.ceil(float(r.headers.get('content-length'))/1024)
 

@@ -7,14 +7,13 @@
 import requests
 
 
-class ApiKeyCollector(object):
-    _KEY = None
+class ApiTokenStorage(object):
+    _API_TOKEN = None
 
     @classmethod
-    def get_api_key(cls, config_url=None):
-        if cls._KEY is None and config_url is not None:
-            result = requests.get(config_url)
+    def set_api_token(cls, api_token):
+        cls._API_TOKEN = api_token
 
-            cls._KEY = result.json()['apiToken']
-
-        return cls._KEY
+    @classmethod
+    def get_api_token(cls):
+        return cls._API_TOKEN

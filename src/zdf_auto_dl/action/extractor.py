@@ -40,33 +40,39 @@ class ZdfExtractor(object):
         title_elements = self.document.cssselect('a.teaser-title-link')
         episodes = {}
         for title_element in title_elements:
-            data_track = title_element.get('data-track')
-            if data_track is None:
-                self.logger.warn('unable to find title: no data track in element "%s"' % title_element.text.replace('\n', ' ').strip())
-                continue
-            title_match = self.TITLE_REGEX.match(data_track.replace('\n', ' '))
-            if title_match is None:
-                self.logger.warn('unable to find title: %r' % title_element.get('data-track').replace('\n', ' '))
-                continue
+            for title_attribute in ('data-track', 'title'):
+                data_track = title_element.get(title_attribute)
+                if data_track is None:
+                    self.logger.warn('unable to find title: no data track in element "%s"' % title_element.text.replace('\n', ' ').strip())
+                    continue
 
-            episode_title = title_match.group('title').rpartition('Teaser:')[-1].strip()
-            if self.show.lower() not in episode_title.lower():
-                continue
+                if title_attribute == 'title':
+                    episode_title = data_track
 
-            match = self.DATE_REGEX.match(episode_title)
-            if match is None:
-                self.logger.warn('this should actually match the show: %s' % episode_title)
-                continue
+                else:
+                    title_match = self.TITLE_REGEX.match(data_track.replace('\n', ' '))
+                    if title_match is None:
+                        self.logger.warn('unable to find title: %r' % data_track.replace('\n', ' '))
+                        continue
 
-            episode_date_str = match.group('date')
-            if match.group('month') in self.MONTHS:
-                episode_date_str = episode_date_str.replace(
-                    match.group('month'),
-                    self.MONTH_TRANSLATION[match.group('month')],
-                )
+                    episode_title = title_match.group('title').rpartition('Teaser:')[-1].strip()
+                    if self.show.lower() not in episode_title.lower():
+                        continue
 
-            episode_date = dateutil.parser.parse(episode_date_str)
-            episodes[episode_date] = title_element.get('href').strip()
+                match = self.DATE_REGEX.match(episode_title)
+                if match is None:
+                    self.logger.warn('this should actually match the show, but cannot find date: %s' % episode_title)
+                    continue
+
+                episode_date_str = match.group('date')
+                if match.group('month') in self.MONTHS:
+                    episode_date_str = episode_date_str.replace(
+                        match.group('month'),
+                        self.MONTH_TRANSLATION[match.group('month')],
+                    )
+
+                episode_date = dateutil.parser.parse(episode_date_str)
+                episodes[episode_date] = title_element.get('href').strip()
 
         self.logger.debug('found %i fitting episodes of %i results' % (len(episodes), len(title_elements)))
 
