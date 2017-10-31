@@ -5,7 +5,7 @@ ZDF Mediathek Auto Downloader 1.0.2
 
 
 ## Requirements
-* python 2.7 - 3.5 (supposed, please verify yourself)
+* python 2.7 - 3.6 (supposed, please verify yourself)
 * pip
     * argparse
     * colorlog
