@@ -43,5 +43,6 @@ OPTIONS:
 * ensure support for all python versions
     * Python 2.7: verified (2.7.6)
     * Python 3.5: verified (3.5.2)
+    * Python 3.6: verified (3.6.1)
 * add setup.py
     * include command to bind main.py
