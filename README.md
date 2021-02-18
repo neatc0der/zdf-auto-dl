@@ -1,3 +1,5 @@
+[![GitHub Actions status | neatc0der/zdf-auto-dl](https://github.com/neatc0der/zdf-auto-dl/workflows/CI/badge.svg)](https://github.com/neatc0der/zdf-auto-dl/actions?workflow=CI)
+
 zdf-auto-dl
 ===========
 
