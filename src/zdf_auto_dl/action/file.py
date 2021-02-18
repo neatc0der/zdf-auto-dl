@@ -39,11 +39,13 @@ class VideoDownloader(object):
         )
 
     def start(self):
-        if self.config.register.check(self.target_file):
-            self.logger.debug('file already exists')
-            return
+        self.logger.info(
+            'Starting download of episode S{0.season}E{0.episode} for show {1}'.format(self.episode_data, self.show)
+        )
 
-        self.logger.debug('starting download of parts')
+        if self.config.register.check(self.target_file):
+            self.logger.info('episode already exists')
+            return
 
         if not os.path.isdir(self.temp_dir):
             os.makedirs(self.temp_dir)

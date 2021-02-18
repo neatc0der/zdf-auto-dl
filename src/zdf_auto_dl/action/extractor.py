@@ -15,19 +15,20 @@ from zdf_auto_dl.logger import add_logger
 @add_logger
 class ZdfExtractor(object):
     BASE_URL = 'https://www.zdf.de'
-    DATE_REGEX = re.compile(r'^.* vom (?P<date>((\d{1,2}\.){2}\d{4})|(\d{1,2}. (?P<month>\w+) \d{4})).*$', re.IGNORECASE)
+    DATE_REGEX = re.compile(r'^.* vom (?P<date>((\d{1,2}\.){2}\d{4})|(\d{1,2}\.? (?P<month>\w+) \d{4})).*$', re.IGNORECASE)
 
     TITLE_REGEX = re.compile(r'^.*\"actionDetail\":\s*\"(?P<title>.*)\"\s*}$')
 
     MONTH_TRANSLATION = {
-        'Januar': 'January',
-        'Februar': 'February',
-        'März': 'March',
-        'Mai': 'May',
-        'Juni': 'June',
-        'Juli': 'July',
-        'Oktober': 'October',
-        'Dezember': 'December',
+        'januar': 'January',
+        'februar': 'February',
+        'maerz': 'March',
+        'märz': 'March',
+        'mai': 'May',
+        'juni': 'June',
+        'juli': 'July',
+        'oktober': 'October',
+        'dezember': 'December',
     }
 
     MONTHS = tuple(MONTH_TRANSLATION.keys())
@@ -55,7 +56,7 @@ class ZdfExtractor(object):
                         self.logger.warn('unable to find title: %r' % data_track.replace('\n', ' '))
                         continue
 
-                    episode_title = title_match.group('title').rpartition('Teaser:')[-1].strip()
+                    episode_title = title_match.group('title').rpartition('Linkziel:')[-1].replace('-', ' ').strip()
                     if self.show.lower() not in episode_title.lower():
                         continue
 
@@ -65,10 +66,10 @@ class ZdfExtractor(object):
                     continue
 
                 episode_date_str = match.group('date')
-                if match.group('month') in self.MONTHS:
+                if match.group('month').lower() in self.MONTHS:
                     episode_date_str = episode_date_str.replace(
                         match.group('month'),
-                        self.MONTH_TRANSLATION[match.group('month')],
+                        self.MONTH_TRANSLATION[match.group('month').lower()],
                     )
 
                 episode_date = dateutil.parser.parse(episode_date_str)
