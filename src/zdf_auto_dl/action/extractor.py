@@ -38,42 +38,15 @@ class ZdfExtractor(object):
         self.document = html.fromstring(content.encode("utf8"))
 
     def get_episodes(self):
-        title_elements = self.document.cssselect('a.teaser-title-link')
+        title_elements = self.document.cssselect('article.b-content-teaser-item')
         episodes = {}
         for title_element in title_elements:
-            for title_attribute in ('data-track', 'title'):
-                data_track = title_element.get(title_attribute)
-                if data_track is None:
-                    self.logger.warn('unable to find title: no data track in element "%s"' % title_element.text.replace('\n', ' ').strip())
-                    continue
-
-                if title_attribute == 'title':
-                    episode_title = data_track
-
-                else:
-                    title_match = self.TITLE_REGEX.match(data_track.replace('\n', ' '))
-                    if title_match is None:
-                        self.logger.warn('unable to find title: %r' % data_track.replace('\n', ' '))
-                        continue
-
-                    episode_title = title_match.group('title').rpartition('Linkziel:')[-1].replace('-', ' ').strip()
-                    if self.show.lower() not in episode_title.lower():
-                        continue
-
-                match = self.DATE_REGEX.match(episode_title)
-                if match is None:
-                    self.logger.warn('this should actually match the show, but cannot find date: %s' % episode_title)
-                    continue
-
-                episode_date_str = match.group('date')
-                if match.group('month').lower() in self.MONTHS:
-                    episode_date_str = episode_date_str.replace(
-                        match.group('month'),
-                        self.MONTH_TRANSLATION[match.group('month').lower()],
-                    )
-
-                episode_date = dateutil.parser.parse(episode_date_str)
-                episodes[episode_date] = title_element.get('href').strip()
+            if self.show.lower() not in title_element.cssselect('.teaser-cat-brand-ellipsis')[0].text.lower():
+                continue
+            episode_title = title_element.cssselect('a.teaser-title-link .normal-space')[0].text.strip()
+            episode_date_str = title_element.cssselect('.special-info')[0].text.strip()
+            episode_date = dateutil.parser.parse(episode_date_str)
+            episodes[episode_date] = title_element.cssselect('a.teaser-title-link')[0].get('href').strip()
 
         self.logger.debug('found %i fitting episodes of %i results' % (len(episodes), len(title_elements)))
 

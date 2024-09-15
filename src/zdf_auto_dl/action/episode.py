@@ -24,5 +24,5 @@ class EpisodeData(object):
             'show': self.show,
             'season': self.season,
             'episode': self.episode,
-            'date': self.episode_date,
+            'date': self.episode_date.date(),
         }

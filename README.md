@@ -1,13 +1,15 @@
-[![GitHub Actions status | neatc0der/zdf-auto-dl](https://github.com/neatc0der/zdf-auto-dl/workflows/CI/badge.svg)](https://github.com/neatc0der/zdf-auto-dl/actions?workflow=CI)
+[![GitHub Actions status](https://github.com/neatc0der/zdf-auto-dl/workflows/CI/badge.svg)](https://github.com/neatc0der/zdf-auto-dl/actions?workflow=CI)
+[![Latest Tag](https://img.shields.io/github/v/tag/neatc0der/zdf-auto-dl)](https://github.com/neatc0der/zdf-auto-dl/tags)
+
 
 zdf-auto-dl
 ===========
 
-ZDF Mediathek Auto Downloader 1.0.2
+ZDF Mediathek Auto Downloader 1.1.0
 
 
 ## Requirements
-* python 2.7 - 3.6 (supposed, please verify yourself)
+* python 2.7 - 3.10 (supposed, please verify yourself)
 * pip
     * argparse
     * colorlog
@@ -46,5 +48,8 @@ OPTIONS:
     * Python 2.7: verified (2.7.6)
     * Python 3.5: verified (3.5.2)
     * Python 3.6: verified (3.6.1)
+    * Python 3.8: verified (3.8.6)
 * add setup.py
     * include command to bind main.py
+* refactor
+

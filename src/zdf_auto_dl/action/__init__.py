@@ -105,7 +105,7 @@ class ZdfDownloader(object):
             self.logger.error('invalid api token: %r' % api_token)
             return
         video_data = video_data_result.json()
-        attribute_path = video_data['mainVideoContent']['http://zdf.de/rels/target']['http://zdf.de/rels/streams/ptmd-template']
+        attribute_path = video_data['mainVideoContent']['http://zdf.de/rels/target']['streams']['default']['http://zdf.de/rels/streams/ptmd-template']
         attribute_path = attribute_path.replace('{playerId}', 'ngplayer_2_3')
 
         response = requests.get(self.API_BASE_URL + attribute_path, headers={'Api-Auth': 'Bearer %s' % api_token})

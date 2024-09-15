@@ -69,4 +69,5 @@ class PartDownloader(object):
                         else:
                             sleep_time = 0
 
-        sys.stdout.write('\n')
+        if self.config.progress:
+            sys.stdout.write('\n')
