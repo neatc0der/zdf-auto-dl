@@ -41,7 +41,7 @@ class ZdfExtractor(object):
         title_elements = self.document.cssselect('article.b-content-teaser-item')
         episodes = {}
         for title_element in title_elements:
-            if self.show.lower() not in title_element.cssselect('.teaser-cat-brand-ellipsis')[0].text.lower():
+            if not title_element.cssselect('.teaser-cat-brand-ellipsis') or self.show.lower() not in title_element.cssselect('.teaser-cat-brand-ellipsis')[0].text.lower():
                 continue
             episode_title = title_element.cssselect('a.teaser-title-link .normal-space')[0].text.strip()
             episode_date_str = title_element.cssselect('.special-info')[0].text.strip()
